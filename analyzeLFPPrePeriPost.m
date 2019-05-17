@@ -2,11 +2,17 @@ clear all; close all; clc
 addpath(genpath('/Users/jacekdmochowski/PROJECTS/COMMON'));
 %%
 rStr='r010';
-freqStr='10Hz';
-condStr='Sham';
+freqStr='40HZ';
+condStr='SHAM';
+saveDataFileStr=[rStr '_' freqStr '_' condStr '_PXX'];
 targetFreq=str2num(freqStr(1:2));
+if targetFreq==10
+    offTargetFreq=40;
+else
+    offTargetFreq=10;
+end
 dataFolder=['../data/' rStr '/' ];
-rerefChannel=1;
+rerefChannel=NaN;
 fs=30000;
 dsr=30; %downsampling ratio
 flHz=1; % lowest frequency that we're interested in
@@ -19,12 +25,12 @@ probeMap=[17,16,18,15,19,14,20,13,...
 filenames=dir([dataFolder '*.mat']);
 nFiles=numel(filenames);
 for f=1:nFiles
-    tFilename=filenames(f).name;
-    if contains(tFilename,'Pre') && contains(tFilename,freqStr) && contains(tFilename,condStr)
+    tFilename=upper(filenames(f).name);
+    if contains(tFilename,'PRE') && contains(tFilename,freqStr) && contains(tFilename,condStr)
         preFilename=tFilename;
-    elseif contains(tFilename,'Dur') && contains(tFilename,freqStr) && contains(tFilename,condStr)
+    elseif contains(tFilename,'DUR') && contains(tFilename,freqStr) && contains(tFilename,condStr)
         periFilename=tFilename;
-    elseif contains(tFilename,'Pos') && contains(tFilename,freqStr) && contains(tFilename,condStr)
+    elseif contains(tFilename,'POS') && contains(tFilename,freqStr) && contains(tFilename,condStr)
         postFilename=tFilename;
     else
     end
@@ -35,6 +41,11 @@ matFilenames{3}=fullfile(dataFolder,postFilename);
 samples={60*0*fs+1:60*3*fs;
     60*0*fs+1:60*3*fs;
     60*0*fs+1:60*3*fs}; % 3 min
+
+% % only for r007
+% samples={60*7*fs+1:60*10*fs;
+%     60*0*fs+1:60*3*fs;
+%     60*0*fs+1:60*3*fs}; % 3 min
 
 
 %%
@@ -47,7 +58,9 @@ end
 
 %%
 % rereference
+if ~isnan(rerefChannel)
 data = data - repmat (data(rerefChannel,:,:),[size(data,1) 1 1 ]);
+end
 
 %%
 fl=flHz/(fs/2);
@@ -126,4 +139,25 @@ set(get(hs(1,1),'XLabel'),'String','Freq (Hz)');
 
 print('-dpng',['../figures/PSC_' rStr '_' freqStr '_' condStr ]);
 
+%%
+% temporal evolution at target frequency
+[~,freqIndx]=min(abs(targetFreq-freqs));
+spspTargetPre=squeeze(PXX(freqIndx,probeMap,:,1));
+spspTargetPost=squeeze(PXX(freqIndx,probeMap,:,3));
+[~,offFreqIndx]=min(abs(offTargetFreq-freqs));
+spspOffTargetPre=squeeze(PXX(offFreqIndx,probeMap,:,1));
+spspOffTargetPost=squeeze(PXX(offFreqIndx,probeMap,:,3));
+figure
+subplot(221);
+imagesc([spspTargetPre spspTargetPost]);
+subplot(222);
+imagesc([spspOffTargetPre spspOffTargetPost]);
+subplot(223); hold on
+plot([spspTargetPre spspTargetPost].')
+plot(mean([spspTargetPre spspTargetPost]),'-k','LineWidth',2)
+subplot(224); hold on
+plot([spspOffTargetPre spspOffTargetPost].')
+plot(mean([spspOffTargetPre spspOffTargetPost]),'-k','LineWidth',2)
 
+%%
+save(fullfile(dataFolder,saveDataFileStr),'PXX','freqs','fsr','rerefChannel','probeMap');

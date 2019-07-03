@@ -5,9 +5,9 @@ clear all; close all; clc
 addpath(genpath('/Users/jacekdmochowski/PROJECTS/COMMON'));
 
 %%
-rStr='r023';
-freq=10;
-condStr='sham';
+rStr='r024';
+freq=40;
+condStr='active';
 freqStr=[num2str(freq) 'HZ'];
 subfolderStr=[condStr num2str(freq)]; 
 dataFolder=['../data/' rStr '/' subfolderStr '/' ];

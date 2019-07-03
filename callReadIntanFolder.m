@@ -1,5 +1,5 @@
 clear all; close all; clc;  
-rStr='r023';
+rStr='r024';
 read_Intan_RHD2000_files(['../data/' rStr '/active40']);
 read_Intan_RHD2000_files(['../data/' rStr '/sham40']);
 read_Intan_RHD2000_files(['../data/' rStr '/active10']);

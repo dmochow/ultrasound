@@ -176,10 +176,11 @@ hsh(4)=shadedErrorBar(timePostDown,grandMeansCorrDown(2,numel(timeBslDown)+1:end
 yl=ylim;
 hsig=plot(timePostDown(issig_12_),yl(1)*ones(sum(issig_12_),1),'*k','MarkerSize',6)
 ylabel('40 Hz Power');
+xlabel('Time (min.)');
 harea=area([0 3],[yl(2) yl(2)],'FaceColor',[0.7 0.7 0.7],'BaseValue',yl(1));
 set(harea,'EdgeColor','none');
 set(harea,'FaceAlpha',0.5);
-htext=text(1.5,0,'FUS');
+htext=text(1.5,-5,'40 Hz FUS');
 set(htext,'Rotation',90);
 set(htext,'FontSize',15);
 hlg=legend([hsh(1).patch hsh(3).patch hsig],'Active','Sham','p<0.05');
@@ -201,12 +202,13 @@ hsh(2)=shadedErrorBar(timePostDown,grandMeansCorrDown(5,numel(timeBslDown)+1:end
 hsh(3)=shadedErrorBar(timeBslDown,grandMeansCorrDown(6,1:numel(timeBslDown))  , grandSemsCorrDown(6,1:numel(timeBslDown)) ,'r',1);
 hsh(4)=shadedErrorBar(timePostDown,grandMeansCorrDown(6,numel(timeBslDown)+1:end),grandSemsCorrDown(6,numel(timeBslDown)+1:end),'r',1);
 ylabel('10 Hz Power');
+xlabel('Time (min.)');
 yl=ylim;
 hsig=plot(timePostDown(issig_56_),yl(2)*ones(sum(issig_56_),1),'*k','MarkerSize',6);
 harea=area([0 3],[yl(2) yl(2)],'FaceColor',[0.7 0.7 0.7],'BaseValue',yl(1));
 set(harea,'EdgeColor','none');
 set(harea,'FaceAlpha',0.5);
-htext=text(1.5,0,'FUS');
+htext=text(1.5,-20,'40 Hz FUS');
 set(htext,'Rotation',90);
 set(htext,'FontSize',15);
 xlim([-10 33]);

@@ -6,8 +6,11 @@ clear all; close all; clc
 
 
 %%
-rStrs={'r022'};
-orders={'40s','40a','10s','10a'};
+%rStrs={'r022','r023','r024'};
+%orders={'40s','40a','10s','10a';'10s','10a','40s','40a';'10s','10a','40s','40a'};
+
+rStrs={'r024'};
+orders={'10s','10a','40s','40a'};
 
 fs=500; % rate at which envelopes are sampled
 fsd=50; % envelopes were downsampled to this
@@ -54,11 +57,21 @@ for r=1:nRats
     allData(2,r,:)=mean(varsShamStim40.env40ds(caChan,:),1);
     allData(3,r,:)=mean(varsActiveStim10.env40ds(caChan,:),1);
     allData(4,r,:)=mean(varsShamStim10.env40ds(caChan,:),1);
+    
+    allStimData(1,r,:)=mean(varsActiveStim40.stimenv40ds(caChan,:),1);
+    allStimData(2,r,:)=mean(varsShamStim40.stimenv40ds(caChan,:),1);
+    allStimData(3,r,:)=mean(varsActiveStim10.stimenv40ds(caChan,:),1);
+    allStimData(4,r,:)=mean(varsShamStim10.stimenv40ds(caChan,:),1);
         
     allData(5,r,:)=mean(varsActiveStim40.env10ds(caChan,:),1);    
     allData(6,r,:)=mean(varsShamStim40.env10ds(caChan,:),1);
     allData(7,r,:)=mean(varsActiveStim10.env10ds(caChan,:),1);
     allData(8,r,:)=mean(varsShamStim10.env10ds(caChan,:),1);
+    
+    allStimData(5,r,:)=mean(varsActiveStim40.stimenv10ds(caChan,:),1);    
+    allStimData(6,r,:)=mean(varsShamStim40.stimenv10ds(caChan,:),1);
+    allStimData(7,r,:)=mean(varsActiveStim10.stimenv10ds(caChan,:),1);
+    allStimData(8,r,:)=mean(varsShamStim10.stimenv10ds(caChan,:),1);
     
     
 end
@@ -77,30 +90,30 @@ for c=1:8
         stimy=B(2)+timeStim*B(1);
         bslcorry=B(2)+timeBsl*B(1);
         
-        %
+        % baseline
         inp=squeeze(allData(c,r,1:numel(timeBsl))).';
         otp=inp-bslcorry;
         allDataCorr(c,r,1:numel(timeBsl))=otp;
         
-        %
-        inp=squeeze(allData(c,r,numel(timeBsl)+1:numel(timeBsl)+numel(timeStim))).';
+        % stim
+        inp=squeeze(allStimData(c,r,:)).';
         otp=inp-stimy;
-        allDataCorr(c,r,numel(timeBsl)+1:numel(timeBsl)+numel(timeStim))=otp;
+        allStimDataCorr(c,r,:)=otp;
         
-        %
-        inp=squeeze(allData(c,r,numel(timeBsl)+numel(timeStim)+1:end)).';
+        % post
+        inp=squeeze(allData(c,r,numel(timeBsl)+1:end)).';
         otp=inp-posty;
-        allDataCorr(c,r,numel(timeBsl)+numel(timeStim)+1:end)=otp;
+        allDataCorr(c,r,numel(timeBsl)+1:end)=otp;
     end
 end
 % allDataCorr=allData; % omit regressing of the baseline trend
 
-
-
+allDataCorr_= cat(3,allDataCorr(:,:,1:numel(timeBsl)),allStimDataCorr);
+allDataCorr_= cat(3,allDataCorr_,allDataCorr(:,:,numel(timeBsl)+1:end));
 %%
 dsr=50;
-grandMeansCorr=squeeze(mean(allDataCorr,2));
-grandSemsCorr=squeeze(std(allDataCorr,[],2))/sqrt(nRats);
+grandMeansCorr=squeeze(mean(allDataCorr_,2));
+grandSemsCorr=squeeze(std(allDataCorr_,[],2))/sqrt(nRats);
 for c=1:8
     c
     grandMeansCorrDown(c,:)=resample(grandMeansCorr(c,:),1,dsr);
@@ -146,6 +159,40 @@ hsh(8)=plot(timeDown, grandMeansCorrDown(8,:));
 ylabel('10 Hz power');
 hlg=legend('active 10', 'sham 10');
 %xlim([0 3]);
+
+%%
+% show subject averaged downsampled curve
+figure; 
+
+hs(1)=subplot(221); hold on
+hsh(1)=plot(timeDown, grandMeansCorrDown(1,:));
+hsh(2)=plot(timeDown, grandMeansCorrDown(2,:));
+yl=ylim;
+ylabel('40 Hz power (\muV)');
+xlabel('Time (min.)');
+harea=area([0 3],[yl(2) yl(2)],'FaceColor',[0.7 0.7 0.7],'BaseValue',yl(1),'FaceAlpha',0.2,'EdgeColor','none');
+hlg=legend([hsh(1) hsh(2)],'Active', 'Sham');
+htext=text(1.5,-50,'40 Hz FUS');
+set(htext,'Rotation',90);
+xlim([-10 30]);
+set(hlg,'box','off');
+
+hs(3)=subplot(222); hold on
+hsh(5)=plot(timeDown, grandMeansCorrDown(5,:));
+hsh(6)=plot(timeDown, grandMeansCorrDown(6,:));
+yl=ylim;
+ylabel('10 Hz power (\muV)');
+xlabel('Time (min.)');
+harea=area([0 3],[yl(2) yl(2)],'FaceColor',[0.7 0.7 0.7],'BaseValue',yl(1),'FaceAlpha',0.2,'EdgeColor','none');
+hlg=legend([hsh(5) hsh(6)],'Active', 'Sham');
+htext=text(1.5,-100,'40 Hz FUS');
+set(htext,'Rotation',90);
+xlim([-10 30]);
+set(hlg,'box','off');
+
+sublabel([hs(1) hs(3)],-20,-20,'fontweight','Bold','fontsize',16);
+print -dpng ../figures/mean_envelopes_allRatsStim_
+crop('../figures/mean_envelopes_allRatsStim_.png',0);
 
 
 
